@@ -165,8 +165,7 @@ impl Client {
         {
             if let Some(cookie_store) = self.config.cookie_store.as_ref() {
                 if req.headers().get(crate::header::COOKIE).is_none() {
-                    let url = req.url().clone(); // TODO Onè: Revisit and determine if clone is needed
-                    add_cookie_header(req.headers_mut(), &**cookie_store, &url);
+                    add_cookie_header(&mut req, &**cookie_store);
                 }
             }
         }
@@ -410,9 +409,9 @@ impl Config {
 }
 
 #[cfg(feature = "cookies")]
-fn add_cookie_header(headers: &mut HeaderMap, cookie_store: &dyn cookie::CookieStore, url: &Url) {
-    if let Some(header) = cookie_store.cookies(url) {
-        headers.insert(crate::header::COOKIE, header);
+fn add_cookie_header(req: &mut Request, cookie_store: &dyn cookie::CookieStore) {
+    if let Some(header) = cookie_store.cookies(req.url()) {
+        req.headers_mut().insert(crate::header::COOKIE, header);
     }
 }
 
